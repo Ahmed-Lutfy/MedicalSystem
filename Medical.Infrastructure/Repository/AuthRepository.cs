@@ -1,0 +1,87 @@
+﻿using AutoMapper;
+using Medical.Application.DTO;
+using Medical.Domain.Interface;
+using Medical.Infrastructure.Model;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Medical.Infrastructure.Repository
+{
+    public class AuthRepository : IAuthRepository
+
+    {
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IMapper _mapper;
+
+        public AuthRepository(UserManager<ApplicationUser> userManager,
+          IMapper mapper)
+        {
+            _userManager = userManager;
+            _mapper = mapper;
+        }
+        public async Task<UserResponse> RegisterAsync(UserRegisterRequest requestDto)
+        {
+            var userMapped = _mapper.Map<ApplicationUser>(requestDto);
+
+            var result = await _userManager.CreateAsync(userMapped, requestDto.PasswordHash);
+            var result2= await _userManager.AddToRoleAsync(userMapped, requestDto.Role);
+            var response = _mapper.Map<UserResponse>(userMapped);
+            return response;
+        }
+        
+        public async Task<UserResponse> LoginAsync(UserLoginRequest requestDto)
+        {
+
+            var user = await _userManager.FindByEmailAsync(requestDto.Email);
+
+            var check = await _userManager.CheckPasswordAsync(user, requestDto.Password);
+
+            if (user == null || !check) { throw new Exception(); }
+
+            var response = _mapper.Map<UserResponse>(user);
+            return response;
+        }
+        public async Task<UserResponse> checkToken(string token)
+        {
+            var user = await _userManager.Users.SingleOrDefaultAsync(u => u.AccessToken == token);
+            if (user == null) { throw new Exception(); }
+            ;
+
+            var response = _mapper.Map<UserResponse>(user);
+            return response;
+        }
+
+        public async Task<bool> updateUserRefreshToken(UserResponse user)
+        {
+            var Newuser = await _userManager.FindByEmailAsync(user.Email);
+            //Newuser.RefreshToken = user.RefreshToken;
+            //Newuser.RefreshTokenExpiryTime = user.RefreshTokenExpiryTime;
+            var map = _mapper.Map( user, Newuser);
+            var result = await _userManager.UpdateAsync(map);
+
+            if (result.Succeeded)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        public async Task<bool> updateUserToken(UserAccessToken dto)
+        {
+
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            user.AccessToken = dto.AccessToken;
+            var result = await _userManager.UpdateAsync(user);
+            return result.Succeeded;
+        }
+
+    }
+}
+
