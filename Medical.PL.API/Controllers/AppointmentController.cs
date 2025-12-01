@@ -1,5 +1,6 @@
 ﻿using Medical.Application.DTO;
 using Medical.Application.Service.Interface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,7 +15,7 @@ namespace Medical.PL.API.Controllers
         {
             _servive = servive;
         }
-
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Post(AppointmentDTO dto)
         {

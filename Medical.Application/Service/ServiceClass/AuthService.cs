@@ -89,11 +89,11 @@ namespace Medical.Application.Service.ServiceClass
                 if (user == null)
                     return false;
 
-                user.AccessToken = null;
+                user.AccessToken = string.Empty;
                 user.ExpireToken = DateTime.Now;
 
-                user.RefreshToken = null;
-                user.RefreshTokenExpiryTime = null;
+                user.RefreshToken = string.Empty;
+                user.RefreshTokenExpiryTime = DateTime.Now;
 
                 user.RevokeOn = DateTime.Now;  // logout
 
